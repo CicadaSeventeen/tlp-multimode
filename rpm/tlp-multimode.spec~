@@ -45,10 +45,6 @@ install -p -m 755 modes/performance/post_script %{buildroot}%{_sysconfdir}/%{nam
 
 
 %files
-%dir %{_sysconfdir}/%{name}
-%dir %{_sysconfdir}/%{name}/balanced
-%dir %{_sysconfdir}/%{name}/performance
-%dir %{_sysconfdir}/%{name}/power-saver
 %config(noreplace) %{_sysconfdir}/%{name}/power-saver/tlp.conf
 %config(noreplace) %{_sysconfdir}/%{name}/power-saver/pre_script
 %config(noreplace) %{_sysconfdir}/%{name}/power-saver/post_script
