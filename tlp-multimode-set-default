@@ -1,0 +1,50 @@
+#!/bin/sh
+#tlp-pdd-default-set
+if [ x"$1" == x"set" ]
+then
+	case $2 in
+		'powersave'|'low'|'power-saver')
+			mode='power-saver'
+			;;
+		'balance'|'balanced'|'mid'|'middle'|'medium')
+			mode='balanced'
+			;;
+		'performance'|'high')
+			mode='performance'
+			;;
+		'default')
+			echo 'Can not set default as default'
+			exit 1
+			;;
+		*)
+			mode="$2"
+			;;
+	esac
+	if [ -d '/etc/tlp-multimode/'"$mode"  ]
+	then
+		cd /etc/tlp-multimode/
+		if [ -e '/etc/tlp-multimode/default' ]
+		then
+			rm -rf /etc/tlp-multimode/default
+		fi
+		ln -s "$mode" 'default'
+	else
+		echo "configure not found"
+		exit 1
+	fi
+elif [ x"$1" == x"get" ] || [ x"$1" == x ]
+then
+	basename $(realpath /etc/tlp-multimode/default)
+else
+	echo Uasge: set default profile of tlp-multimode
+	echo 	set
+	echo	'	power-saver'
+	echo	'	balanced'
+	echo	'	performance'
+	echo	'		you can also use other custom profiles'
+	echo	'		but do not use profile naming default'
+	echo
+	echo	'get'
+	echo	'		to get current default profile'
+fi
+exit 0

@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+require "fileutils"
+require "optparse"
+
+def link_directory?(path)
+  if File.symlink?(path)
+    File.directory?(File.realpath(path))
+  else
+    File.directory?(path)
+  end
+end
+
+clean_mode = false
+profile_name = ""
+
+clean_mode = false
+OptionParser.new do |parser|
+  parser.on("--clean-config","clean link of configure after tlp start") { clean_mode = true }
+  parser.on("--clean","alias for --clean--config") { clean_mode = true }
+  parser.on("--clean-profile","alias for --clean--config") { clean_mode = true }
+  parser.on("-c","alias for --clean--config") { clean_mode = true }
+  parser.parse!(ARGV)
+end
+profile_name=ARGV.shift
+
+profile_name = case profile_name
+when "powersave", "low"
+  "power-saver"
+when "balance", "mid", "middle", "medium"
+  "balanced"
+when "high"
+  "performance"
+when nil, ""
+  puts "Fallback to default configure"
+  "default"
+else
+  profile_name
+end
+
+profile_dir = File.join("/etc/tlp-multimode/", profile_name.to_s)
+conf_realpath = File.join(profile_dir, "tlp.conf")
+pre_script_realpath = File.join(profile_dir, "pre_script")
+post_script_realpath = File.join(profile_dir, "post_script")
+tlp_conf = "/etc/tlp.d/99-tlp-multimode.conf"
+
+if link_directory?(profile_dir) && File.exist?(conf_realpath) && !link_directory?(conf_realpath)
+  # ok
+else
+  STDERR.puts "No such configure"
+  exit 1
+end
+if File.exist?(tlp_conf)
+  FileUtils.rm_rf(tlp_conf)
+end
+
+begin
+  FileUtils.ln_s(conf_realpath, tlp_conf)
+rescue
+  STDERR.puts "Soft link error"
+  exit 1
+end
+
+puts "Using configure naming #{profile_name}"
+puts ""
+puts "Running"
+if File.exist?(pre_script_realpath) && !link_directory?(pre_script_realpath)
+  begin
+    puts "Run Pre Script"
+    system(pre_script_realpath)
+  rescue
+    puts "Pre Script Run Error"
+  end
+end
+system("tlp false > /dev/null")
+system("tlp start")
+if File.exist?(post_script_realpath) && !link_directory?(post_script_realpath)
+  begin
+    puts "Run Post Script"
+    system(post_script_realpath)
+  rescue
+    puts "Post Script Run Error"
+  end
+end
+
+if clean_mode == true
+    puts "Cleaning Links"
+    FileUtils.rm_rf(tlp_conf)
+else
+    exit 0
+end
+
