@@ -1,9 +1,9 @@
 Name:           tlp-multimode
-Version:        0.1
+Version:        0.2
 Release:        1%{?dist}
 Summary:        multi-mode switcher for tlp
-License:        BSD
-URL:            https://github.com/hirak99/yabsnap
+License:        BSD-3
+URL:            https://github.com/CicadaSeventeen/tlp-multimode
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:  gcc
@@ -11,7 +11,7 @@ BuildRequires:  bash
 BuildRequires:  crystal
 Requires:       bash
 Requires:       tlp
-Requires:       python3
+
 
 %description
 A switcher tools to enable multi-mode choice on the top of tlp
@@ -28,8 +28,7 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}
 install -d -m 755 %{buildroot}%{_sysconfdir}/tlp.d
 install -d -m 755 %{buildroot}%{_bindir}
 install -p -m 6755 tlp-multimode-switch %{buildroot}%{_bindir}/tlp-multimode-switch
-#ln -s %{buildroot}%{_datadir}/%{name}/tlp-multimode-switch %{buildroot}%{_datadir}/%{name}/tlpmmctl
-install -p -m 755 tlp-multimode-set-default %{buildroot}%{_bindir}/tlp-multimode-set-default
+install -p -m 755 tlp-multimode-ctl %{buildroot}%{_bindir}/tlp-multimode-ctl
 install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}/power-saver
 install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}/balanced
 install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}/performance
@@ -42,7 +41,8 @@ install -p -m 755 modes/performance/pre_script %{buildroot}%{_sysconfdir}/%{name
 install -p -m 755 modes/power-saver/post_script %{buildroot}%{_sysconfdir}/%{name}/power-saver/post_script
 install -p -m 755 modes/balanced/post_script %{buildroot}%{_sysconfdir}/%{name}/balanced/post_script
 install -p -m 755 modes/performance/post_script %{buildroot}%{_sysconfdir}/%{name}/performance/post_script
-
+cd %{buildroot}/%{_bindir}
+ln -s tlp-multimode-ctl tlpmmctl
 
 %files
 %dir %{_sysconfdir}/%{name}
@@ -60,7 +60,7 @@ install -p -m 755 modes/performance/post_script %{buildroot}%{_sysconfdir}/%{nam
 %config(noreplace) %{_sysconfdir}/%{name}/performance/post_script
 #%license COPYING
 %{_bindir}/tlp-multimode-switch
-%{_bindir}/tlp-multimode-set-default
-
+%{_bindir}/tlp-multimode-ctl
+%{_bindir}/tlpmmctl
 
 %changelog

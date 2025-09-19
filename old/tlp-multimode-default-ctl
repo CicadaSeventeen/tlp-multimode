@@ -1,0 +1,91 @@
+#!/bin/sh
+ERR_NO_WRITE_PERMISSION(){
+	echo 'No Write Permission for '"$@" >&2
+	echo 'You may need run as root.' >&2
+	exit 1
+}
+
+ERR_CONFIG_FAULT(){
+	echo "$@" >&2
+	exit 1
+}
+
+case $0 in
+	*set*) set -- set $@
+	;;
+	*get*) set -- get $@
+	;;
+esac
+if [ x"$1" == x"set" ]
+then
+	case $2 in
+		'powersave'|'low'|'power-saver')
+			mode='power-saver'
+			;;
+		'balance'|'balanced'|'mid'|'middle'|'medium')
+			mode='balanced'
+			;;
+		'performance'|'high')
+			mode='performance'
+			;;
+		'default')
+			ERR_CONFIG_FAULT 'Can not set default as default'
+			;;
+#		*[![:space:]]*)
+#			mode="$2"
+#			;;
+#		'' | [[:space:]]*)
+#			ERR_CONFIG_FAULT 'Configure name not given'
+#			;;
+		'')
+			ERR_CONFIG_FAULT 'Configure name not given'
+			;;
+		*)
+			mode="$2"
+			;;
+	esac
+	if [ -d '/etc/tlp-multimode/'"$mode"  ]
+	then
+		cd /etc/tlp-multimode/
+		if [ ! -w '/etc/tlp-multimode/' ]
+		then
+			ERR_NO_WRITE_PERMISSION '/etc/tlp-multimode'
+		fi
+		if [ -e '/etc/tlp-multimode/default' ]
+		then
+			if [ -w '/etc/tlp-multimode/default' ]
+			then
+				rm -rf /etc/tlp-multimode/default
+			else
+				ERR_NO_WRITE_PERMISSION '/etc/tlp-multimode/default'
+			fi
+		fi
+		ln -s "$mode" 'default'
+	else
+		ERR_CONFIG_FAULT "Configure not found"
+	fi
+elif [ x"$1" == x"get" ] || [ x"$1" == x ]
+#elif [ x"$1" == x"get" ]
+then
+	basename $(realpath /etc/tlp-multimode/default)
+else
+	cat >&2 <<EOF
+Uasge: set or get default profile of tlp-multimode
+
+    set
+        power-saver
+            alias: powersave | low
+        balanced
+            alias: balance | mid | middle | medium
+        performance
+            alias: high
+
+        you can also use other custom profiles
+        but do not use profile naming:
+            default, powersave, balance, low, mid, high, medium, middle
+
+    get
+        to get current default profile
+EOF
+fi
+exit 0

@@ -1,0 +1,184 @@
+#!/bin/sh
+FLAG_PRINT_HELP=0
+FLAG_CLEAN_MODE=0
+progname=${0##*/}
+dirpath=$(realpath $(dirname $0))
+export PATH=$PATH:$dirname
+print_global_help() {
+    cat >&2 <<EOF
+Usage: $progname <subcommand> [options]
+
+Subcommands:
+  getdefault     Show current default profile
+  setdefault     Set default profile, need root permission
+  set            Set active profile, need root permission
+  switch         Alias for Subcommands set
+  get            Show current active profile
+  help           Show this help page
+
+Use "$progname <subcommand> -h" for subcommand help.
+EOF
+}
+
+print_getdefault_help() {
+    cat >&2 <<EOF
+Uasge: $progname getdefault
+  to get current default profile
+
+EOF
+}
+
+print_setdefault_help() {
+	cat >&2 <<EOF
+Uasge: $progname setdefault <profile>
+  Preset Profiles:
+    power-saver
+      alias: powersave | low
+    balanced
+      alias: balance | mid | middle | medium
+    performance
+      alias: high
+
+  You can also use other custom profiles.
+  But do not use profile naming:
+    default, powersave, balance, low, mid, high, medium, middle
+
+EOF
+}
+
+print_set_help() {
+    cat >&2 <<EOF
+Usage: $progname set <profile>
+  Preset Profiles:
+    power-saver
+      alias: powersave | low
+    balanced
+      alias: balance | mid | middle | medium
+    performance
+      alias: high
+    default
+      this profile will be use if no profile name given
+
+  You can also use other custom profiles.
+  Use "$progname setdefault -h" for further information.
+
+Options:
+  -c, --clean       Clean mode: clean profile link after profile activated
+                ! Note: Clean Mode will make it impossible to get current active profile !
+  -h, --help        Show this help page
+
+EOF
+}
+
+print_switch_help(){
+    print_set_help
+}
+
+print_get_help() {
+    cat >&2 <<EOF
+Uasge: $progname get
+  to get current active profile
+
+! Note: If you have set profile with Clean Mode,
+  it will be impossible to get current active profile !
+
+EOF
+}
+
+if [ $# -eq 0 ]; then
+    print_global_help
+    exit 0
+fi
+
+OPTIONS_GETOPT=$(getopt -o hc --long help --long clean --long clean-config --long clean-profile -- "$@"| sed 's/ -- .*//' | sed 's/^-- .*//' | sed 's/ --$//')
+for OPTION_GETOPT in $OPTIONS_GETOPT
+do
+    case $OPTION_GETOPT in
+        -c | --clean | --clean-config | --clean-profile)
+        FLAG_CLEAN_MODE=1
+        ;;
+        -h|--help)
+        FLAG_PRINT_HELP=1
+        ;;
+    esac
+done
+
+while [ $# -ne 0 ]
+do
+    if  [ $1 == '-'* ]
+    then
+        shift
+    else
+        break
+    fi
+done
+case $1 in
+    getdefault|get-default)
+        if [ $FLAG_PRINT_HELP -eq 1 ]
+        then
+            print_getdefault_help
+            exit 0
+        else
+            tlp-multimode-default-ctl get
+            exit 0
+        fi
+        ;;
+
+    setdefault|set-default)
+        if [ $FLAG_PRINT_HELP -eq 1 ]
+        then
+            print_setdefault_help
+            exit 0
+        else
+            tlp-multimode-default-ctl set $2
+            exit 0
+        fi
+        ;;
+
+    get|getactive|get-active)
+        if [ $FLAG_PRINT_HELP -eq 1 ]
+        then
+            print_get_help
+            exit 0
+        else
+            if [ -e '/etc/tlp.d/99-tlp-multimode.conf' ]
+            then
+                echo $(basename $(dirname $(realpath '/etc/tlp.d/99-tlp-multimode.conf')))
+                exit 0
+            else
+                cat >&2 <<EOF
+Error:
+Can not get current active profile!
+It can be due to setting active profile with Clean Mode on
+
+Use "$progname get -h" and "$progname set -h" for further information.
+EOF
+            exit 1
+            fi
+        fi
+        ;;
+
+    set|setactive|set-active|switch)
+        if [ $FLAG_PRINT_HELP -eq 1 ]
+        then
+            print_set_help
+            exit 0
+        elif [ $FLAG_CLEAN_MODE -eq 1 ]
+        then
+            tlp-multimode-switch $2 --clean
+            exit 0
+        else
+            tlp-multimode-switch $2
+            exit 0
+        fi
+        ;;
+
+    help|h)
+        print_global_help
+        exit 0
+        ;;
+    *)
+        print_global_help
+        exit 1
+        ;;
+esac
