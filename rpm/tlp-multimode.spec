@@ -4,7 +4,7 @@ Release:        1%{?dist}
 Summary:        multi-mode switcher for tlp
 License:        BSD-3
 URL:            https://github.com/CicadaSeventeen/tlp-multimode
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{name}-1.tar.gz
 
 BuildRequires:  gcc
 BuildRequires:  bash
@@ -17,7 +17,7 @@ Requires:       tlp
 A switcher tools to enable multi-mode choice on the top of tlp
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-1
 
 %build
 bash rubytrans.sh tlp-multimode-switch.script cr
