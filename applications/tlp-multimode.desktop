@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Icon=battery-ups
+Name=tlp multimode
+Name[zh]=tlp multimode
+Name[zh_CN]=tlp multimode
+Name[zh_CN.UTF-8]=tlp multimode
+Comment=tlp multimode init with default profile
+Comment[zh]=tlp multimode init with default profile
+Comment[zh_CN]=tlp multimode init with default profile
+Comment[zh_CN.UTF-8]=tlp multimode init with default profile
+Categories=System
+Exec=sh -c 'PATH=$PATH:/usr/sbin:/sbin:/usr/local/sbin tlp-multimode-switch default'
+Hidden=false
+NoDisplay=false
+StartupNotify=false
+Terminal=false
+

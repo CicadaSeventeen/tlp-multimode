@@ -1,0 +1,18 @@
+# tlp - systemd startup/shutdown service
+#
+# Copyright (c) 2025 Thomas Koch <linrunner at gmx.net> and others.
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+[Unit]
+Description=TLP multimode switch tool init service
+After=tlp.service multi-user.target
+Wants=tlp.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/tlp-multimode-switch default
+
+[Install]
+#WantedBy=graphical.target
+WantedBy=multi-user.target

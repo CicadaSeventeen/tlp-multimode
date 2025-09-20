@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Icon=battery-profile-balanced
+Name=tlp multimode balance
+Name[zh]=tlp multimode balance
+Name[zh_CN]=tlp multimode balance
+Name[zh_CN.UTF-8]=tlp multimode balance
+Comment=tlp multimode switch to balance profile
+Comment[zh]=tlp multimode switch to balance profile
+Comment[zh_CN]=tlp multimode switch to balance profile
+Comment[zh_CN.UTF-8]=tlp multimode switch to balance profile
+Categories=System
+Exec=sh -c 'PATH=$PATH:/usr/sbin:/sbin:/usr/local/sbin tlp-multimode-switch balanced'
+Hidden=false
+NoDisplay=false
+StartupNotify=false
+Terminal=false
+

@@ -45,13 +45,13 @@ install -p -m 755 modes/performance/pre_script %{buildroot}%{_sysconfdir}/%{name
 install -p -m 755 modes/power-saver/post_script %{buildroot}%{_sysconfdir}/%{name}/power-saver/post_script
 install -p -m 755 modes/balanced/post_script %{buildroot}%{_sysconfdir}/%{name}/balanced/post_script
 install -p -m 755 modes/performance/post_script %{buildroot}%{_sysconfdir}/%{name}/performance/post_script
+cd %{buildroot}/%{_bindir}
+ln -s tlp-multimode-ctl tlpmmctl
 install -p -m 644 applications/tlp-multimode-powersave.desktop %{buildroot}%{_datadir}/applications/tlp-multimode-powersave.desktop
 install -p -m 644 applications/tlp-multimode-balance.desktop %{buildroot}%{_datadir}/applications/tlp-multimode-balance.desktop
 install -p -m 644 applications/tlp-multimode-performance.desktop %{buildroot}%{_datadir}/applications/tlp-multimode-performance.desktop
 install -p -m 644 applications/tlp-multimode.desktop %{buildroot}%{_datadir}/applications/tlp-multimode.desktop
 install -p -m 644 tlp-multimode-init.service %{buildroot}%{_unitdir}/tlp-multimode-init.service
-cd %{buildroot}/%{_bindir}
-ln -s tlp-multimode-ctl tlpmmctl
 
 %files
 %dir %{_sysconfdir}/%{name}
