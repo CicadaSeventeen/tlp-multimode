@@ -93,7 +93,13 @@ setdefault(){
 getdefault(){
     if [ -e '/etc/tlp-multimode/default' ]
     then
-        echo $(basename $(realpath /etc/tlp-multimode/default))
+        #echo $(basename $(realpath /etc/tlp-multimode/default))
+        if [ -L '/etc/tlp-multimode/default' ]
+        then
+            echo $(basename $(readlink /etc/tlp-multimode/default))
+        else
+            echo default
+        fi
     else
         ERR_FILE_NOT_FOUND '/etc/tlp-multimode/default'
     fi
@@ -102,7 +108,8 @@ getdefault(){
 getactive(){
     if [ -L '/etc/tlp.d/99-tlp-multimode.conf' ]
     then
-        echo $(basename $(dirname $(realpath '/etc/tlp.d/99-tlp-multimode.conf')))
+        #echo $(basename $(dirname $(realpath '/etc/tlp.d/99-tlp-multimode.conf')))
+        echo $(basename $(dirname $(readlink '/etc/tlp.d/99-tlp-multimode.conf')))
     else
         ERR_GET_ACTIVE
     fi
