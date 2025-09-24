@@ -1,5 +1,5 @@
 Name:           tlp-multimode
-Version:        0.3
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        multi-mode switcher for tlp
 License:        BSD-3
