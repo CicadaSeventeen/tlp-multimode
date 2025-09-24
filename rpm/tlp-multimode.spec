@@ -67,8 +67,9 @@ if [ ! -e /etc/tlp.d ]
 then
     mkdir -p /etc/tlp.d
 fi
-ln -s /run/tlp-multimode/active/tlp.conf /run/tlp-multimode/tlp.conf
-ln -s /run/tlp-multimode/tlp.conf /etc/tlp.d/99-tlp-multimode.conf
+ln -sf /run/tlp-multimode/tlp.conf /etc/tlp.d/99-tlp-multimode.conf
+ln -sf /run/tlp-multimode/active/tlp.conf /run/tlp-multimode/tlp.conf
+
 
 %postun
 unlink /run/tlp-multimode/active/tlp.conf
