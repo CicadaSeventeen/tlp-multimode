@@ -3,42 +3,55 @@ FLAG_PRINT_HELP=0
 FLAG_CLEAN_MODE=0
 progname=${0##*/}
 dirpath=$(realpath $(dirname $0))
-export PATH=$PATH:$dirname
+dir_exec_path=$(dirname $(realpath $(dirname $0)))'/libexec'
+export PATH=$dirpath:$PATH
+PATH_LIBEXEC=$dir_exec_path:'/usr/libexec':'/usr/local/libexec':"$HOME"'/.local/libexec':$PATH
+
+WRN_CLEAN_MODE_OBSOLETE(){
+    getopt -o h --long help -- "$@" >/dev/null
+    if [ $? -ne 0 ]
+        then
+        echo "Warning: -c or --clean for Clean Mode is obsoleted" >&22
+    fi
+}
 
 ERR_NO_WRITE_PERMISSION(){
-    echo 'No Write Permission for '"$@" >&2
+    echo 'Error: No Write Permission for '"$@" >&2
     echo 'You may need run as root.' >&2
     exit 1
 }
 
 ERR_CONFIG_FAULT(){
-    echo "$@" >&2
+    echo 'Error: '"$@" >&2
     exit 1
 }
 
 ERR_FILE_NOT_FOUND(){
-    echo 'File '"$@"' not found' >&2
+    echo 'Error: File '"$@"' not found' >&2
     exit 1
 }
 
 ERR_GET_ACTIVE(){
-    cat >&2 <<EOF
-Error:
-Can not get current active profile!
-It can be due to setting active profile with Clean Mode on
-
-Use "$progname get -h" and "$progname set -h" for further information.
-EOF
-exit 1
+#echo Error: >&2
+    echo 'Error: Can not get current active profile.' >&2
+    #echo 'It can be due to setting active profile with Clean Mode on' >&2
+    #echo 'Use "$progname get -h" and "$progname set -h" for further information.' >&2
+    exit 1
 }
 
 ERR_NO_CLEAN_MODE_OPTION(){
-    getopt -o h --long help -- "$@" >/dev/null
-#    if [ $? -ne 0 ]
-#    then
-        print_global_help
+    WRN_CLEAN_MODE_OBSOLETE "$@"
+    echo 'Error: Clean Mode is not for this subcommand' >&2
     exit 1
-#    fi
+}
+
+tlp_multimode_switch(){
+    if [ $(id -u) -eq 0 ]
+    then
+        PATH=$PATH_LIBEXEC tlp-multimode-switch.rb $@
+    else
+        PATH=$PATH_LIBEXEC tlp-multimode-switch.bin $@
+    fi
 }
 
 setdefault(){
@@ -106,12 +119,30 @@ getdefault(){
 }
 
 getactive(){
-    if [ -L '/etc/tlp.d/99-tlp-multimode.conf' ]
+    tmp_path='/etc/tlp.d/99-tlp-multimode.conf'
+    while [ -L $tmp_path ]
+    do
+        tmp_path=$(readlink "$tmp_path")
+    done
+    tmp_path=$(dirname "$tmp_path")
+    while true
+    do
+        case x"$tmp_path" in
+         *'active')
+            tmp_path=$(readlink $tmp_path)
+        ;;
+        *)
+            break
+        ;;
+    esac
+    done
+    if [ x"$tmp_path" == 'x/etc/tlp.d/99-tlp-multimode.conf' ]
     then
-        #echo $(basename $(dirname $(realpath '/etc/tlp.d/99-tlp-multimode.conf')))
-        echo $(basename $(dirname $(readlink '/etc/tlp.d/99-tlp-multimode.conf')))
-    else
+        unset tmp_path
         ERR_GET_ACTIVE
+    else
+        echo $(basename $tmp_path)
+        unset tmp_path
     fi
 }
 
@@ -120,11 +151,11 @@ print_global_help() {
 Usage: $progname <subcommand> [options]
 
 Subcommands:
+  get            Show current active profile
+  set            Set active profile
   getdefault     Show current default profile
   setdefault     Set default profile, need root permission
-  set            Set active profile, need root permission
   switch         Alias for Subcommands set
-  get            Show current active profile
   help           Show this help page
 
 Use "$progname <subcommand> -h" for subcommand help.
@@ -174,8 +205,7 @@ Usage: $progname set <profile>
   Use "$progname setdefault -h" for further information.
 
 Options:
-  -c, --clean       Clean mode: clean profile link after profile activated
-                ! Note: Clean Mode will make it impossible to get current active profile !
+  -c, --clean       Obsolete
   -h, --help        Show this help page
 
 EOF
@@ -189,9 +219,6 @@ print_get_help() {
     cat >&2 <<EOF
 Uasge: $progname get
   to get current active profile
-
-! Note: If you have set profile with Clean Mode,
-  it will be impossible to get current active profile !
 
 EOF
 }
@@ -283,12 +310,13 @@ case $1 in
             exit 0
         elif [ $FLAG_CLEAN_MODE -eq 1 ]
         then
+            WRN_CLEAN_MODE_OBSOLETE $@
             shift
-            tlp-multimode-switch $@ --clean
+            tlp_multimode_switch $@
             exit 0
         else
             shift
-            tlp-multimode-switch $@
+            tlp_multimode_switch $@
             exit 0
         fi
         ;;

@@ -40,41 +40,50 @@ profile_dir = File.join("/etc/tlp-multimode/", profile_name.to_s)
 conf_realpath = File.join(profile_dir, "tlp.conf")
 pre_script_realpath = File.join(profile_dir, "pre_script")
 post_script_realpath = File.join(profile_dir, "post_script")
-tlp_conf = "/etc/tlp.d/99-tlp-multimode.conf"
+run_path = "/run/tlp-multimode"
+active_profile_dir = File.join(run_path,"active")
+active_profile_conf = File.join(active_profile_dir,"tlp.conf")
+tlp_run_conf = File.join(run_path,"tlp.conf")
 
-if link_directory?(profile_dir) && #FILE_EXIST?(conf_realpath) && !link_directory?(conf_realpath)
+if !File.directory?(run_path)
+  Dir.mkdir(run_path)
+end
+if link_directory?(profile_dir) && #FILE_EXIST?(conf_realpath)
   # ok
 else
   STDERR.puts "No such configure"
   exit 1
 end
-if #FILE_EXIST?(tlp_conf)
-  FileUtils.rm_rf(tlp_conf)
+if #FILE_EXIST?(tlp_run_conf) || File.symlink?(tlp_run_conf)
+  FileUtils.rm_rf(tlp_run_conf)
+end
+if #FILE_EXIST?(active_profile_dir) || File.symlink?(active_profile_dir)
+  FileUtils.rm_rf(active_profile_dir)
 end
 
 begin
-  FileUtils.ln_s(conf_realpath, tlp_conf)
+  FileUtils.ln_s(profile_dir,active_profile_dir)
+  FileUtils.ln_s(active_profile_conf,tlp_run_conf)
 rescue
   STDERR.puts "Soft link error"
   exit 1
 end
 
 puts "Using configure naming #{profile_name}"
-puts ""
 puts "Running"
 if #FILE_EXIST?(pre_script_realpath) && !link_directory?(pre_script_realpath)
   begin
-    puts "Run Pre Script"
+    puts "Running Pre Script"
     #SYSTEM(pre_script_realpath)
   rescue
     puts "Pre Script Run Error"
   end
 end
-#SYSTEM("tlp false > /dev/null")
+puts "Running TLP"
 #SYSTEM("tlp start")
 if #FILE_EXIST?(post_script_realpath) && !link_directory?(post_script_realpath)
   begin
-    puts "Run Post Script"
+    puts "Running Post Script"
     #SYSTEM(post_script_realpath)
   rescue
     puts "Post Script Run Error"
@@ -82,8 +91,8 @@ if #FILE_EXIST?(post_script_realpath) && !link_directory?(post_script_realpath)
 end
 
 if clean_mode == true
-    puts "Cleaning Links"
-    FileUtils.rm_rf(tlp_conf)
+    puts "Warning: Clean Mode is Obsoleted."
+    exit 0
 else
     exit 0
 end

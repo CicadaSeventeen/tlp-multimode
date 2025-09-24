@@ -11,7 +11,7 @@ Wants=tlp.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/tlp-multimode-switch default
+ExecStart=/usr/bin/tlp-multimode-ctl set default
 
 [Install]
 #WantedBy=graphical.target
