@@ -1,0 +1,17 @@
+A program aiming to make it easy to change power mode manully like power-profiles-daemon, but basing op TLP.
+Only systemd init is supported. For other init, please start tlp-switch-daemon by root.
+
+INSTALL:
+chmod 755 ./install
+sudo ./install
+
+UNINSTALL:
+chmod 755 ./uninstall
+sudo ./uninstall
+
+Configure files are in /etc/tlp.d
+Temporary files are in /run/tlp-switch
+
+Use tlp-switch with root permission to add, change or delete power mode configures.
+Use tlp-switch with root permission to list or switch to different power mode.
+Use tlp-switch without root permission to list or switch to different power mode when daemon is running.
