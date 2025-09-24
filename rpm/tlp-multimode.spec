@@ -1,6 +1,6 @@
 %define __brp_suse_args --exclude /etc/tlp.d/99-tlp-multimode.conf
 Name:           tlp-multimode
-Version:        0.3.2
+Version:        0.3.3
 Release:        1%{?dist}
 Summary:        multi-mode switcher for tlp
 License:        BSD-3
@@ -28,7 +28,6 @@ crystal build tlp-multimode-switch.cr -o tlp-multimode-switch.bin
 
 %install
 install -d -m 755 %{buildroot}%{_sysconfdir}/%{name}
-install -d -m 755 %{buildroot}%{_sysconfdir}/tlp.d
 install -d -m 755 %{buildroot}%{_bindir}
 install -d -m 755 %{buildroot}%{_libexecdir}
 install -d -m 755 %{buildroot}%{_datadir}
@@ -57,12 +56,27 @@ install -p -m 644 applications/tlp-multimode.desktop %{buildroot}%{_datadir}/app
 install -p -m 644 tlp-multimode-init.service %{buildroot}%{_unitdir}/tlp-multimode-init.service
 cd %{buildroot}/%{_bindir}
 ln -s tlp-multimode-ctl tlpmmctl
-cd %{buildroot}/%{_sysconfdir}/tlp.d
-ln -s /run/tlp-multimode/tlp.conf 99-tlp-multimode.conf
+
+
+%post
+if [ ! -e /run/tlp-multimode ]
+then
+    mkdir -p /run/tlp-multimode
+fi
+if [ ! -e /etc/tlp.d ]
+then
+    mkdir -p /run/tlp-multimode
+fi
+ln -s /run/tlp-multimode/active/tlp.conf /run/tlp-multimode/tlp.conf
+ln -s /run/tlp-multimode/tlp.conf /etc/tlp.d/99-tlp-multimode.conf
+
+%postun
+unlink /run/tlp-multimode/active/tlp.conf
+unlink /run/tlp-multimode/tlp.conf
+rm -rf /run/tlp-multimode
 
 %files
 %dir %{_sysconfdir}/%{name}
-%dir %{_sysconfdir}/tlp.d
 %dir %{_sysconfdir}/%{name}/balanced
 %dir %{_sysconfdir}/%{name}/performance
 %dir %{_sysconfdir}/%{name}/power-saver
@@ -76,7 +90,6 @@ ln -s /run/tlp-multimode/tlp.conf 99-tlp-multimode.conf
 %config(noreplace) %{_sysconfdir}/%{name}/performance/pre_script
 %config(noreplace) %{_sysconfdir}/%{name}/performance/post_script
 #%license COPYING
-%{_sysconfdir}/tlp.d/99-tlp-multimode.conf
 %{_libexecdir}/tlp-multimode-switch.bin
 %{_libexecdir}/tlp-multimode-switch.rb
 %{_bindir}/tlp-multimode-ctl
