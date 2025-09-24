@@ -1,3 +1,4 @@
+%define __brp_suse_args --exclude /etc/tlp.d/99-tlp-multimode.conf
 Name:           tlp-multimode
 Version:        0.3.2
 Release:        1%{?dist}
@@ -57,10 +58,7 @@ install -p -m 644 tlp-multimode-init.service %{buildroot}%{_unitdir}/tlp-multimo
 cd %{buildroot}/%{_bindir}
 ln -s tlp-multimode-ctl tlpmmctl
 cd %{buildroot}/%{_sysconfdir}/tlp.d
-mkdir -p %{buildroot}/run/tlp-multimode
-touch %{buildroot}/run/tlp-multimode/tlp.conf
 ln -s /run/tlp-multimode/tlp.conf 99-tlp-multimode.conf
-rm -rf %{buildroot}/run/tlp-multimode
 
 %files
 %dir %{_sysconfdir}/%{name}
