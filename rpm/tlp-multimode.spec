@@ -72,9 +72,10 @@ ln -sf /run/tlp-multimode/active/tlp.conf /run/tlp-multimode/tlp.conf
 
 
 %postun
-unlink /run/tlp-multimode/active/tlp.conf
-unlink /run/tlp-multimode/tlp.conf
-rm -rf /run/tlp-multimode
+[ -L '/run/tlp-multimode/active' ] && unlink /run/tlp-multimode/active
+[ -L '/run/tlp-multimode/tlp.conf' ] && unlink /run/tlp-multimode/tlp.conf
+[ -L '/etc/tlp.d/99-tlp-multimode.conf' ] && unlink /etc/tlp.d/99-tlp-multimode.conf
+[ -d '/run/tlp-multimode' ] && rm -rf /run/tlp-multimode
 
 %files
 %dir %{_sysconfdir}/%{name}
