@@ -4,7 +4,7 @@ FLAG_CLEAN_MODE=0
 progname=${0##*/}
 dirpath=$(realpath $(dirname $0))
 dir_exec_path=$(dirname $(realpath $(dirname $0)))'/libexec'
-export PATH=$dirpath:$PATH
+export PATH=$dirpath:$PATH:/usr/sbin:/sbin:/usr/local/sbin
 PATH_LIBEXEC=$dir_exec_path:'/usr/libexec':'/usr/local/libexec':"$HOME"'/.local/libexec':$PATH
 
 WRN_CLEAN_MODE_OBSOLETE(){
@@ -14,6 +14,15 @@ WRN_CLEAN_MODE_OBSOLETE(){
         echo "Warning: -c or --clean for Clean Mode is obsoleted" >&22
     fi
 }
+
+WRN_DEFAULT_NOT_FOUND(){
+    echo "Waning: 'default' profile not found, fallback to 'balanced'" >&2
+}
+
+#ERR_PROFILE_NOT_FOUND(){
+#    echo "Waning: $@ profile not found" >&2
+#    exit 1
+#}
 
 ERR_NO_WRITE_PERMISSION(){
     echo 'Error: No Write Permission for '"$@" >&2
@@ -120,6 +129,11 @@ getdefault(){
 
 getactive(){
     tmp_path='/etc/tlp.d/99-tlp-multimode.conf'
+    if [ ! -e $tmp_path ]
+    then
+        ERR_FILE_NOT_FOUND $tmp_path
+        exit 1
+    fi
     while [ -L $tmp_path ]
     do
         tmp_path=$(readlink "$tmp_path")
@@ -143,6 +157,33 @@ getactive(){
     else
         echo $(basename $tmp_path)
         unset tmp_path
+    fi
+}
+
+setactive(){
+    if [ x"$1" == xdefault ]
+    then
+        shift
+        setactive_target=$(getdefault 2>/dev/null)
+        if [ $? -ne 0 ]
+        then
+            WRN_DEFAULT_NOT_FOUND
+            setactive_target='balanced'
+        fi
+        set -- $setactive_target $@
+    fi
+    if [ -d "/etc/tlp-multimode/""$setactive_target" ]
+    then
+        export PATH=$PATH:$PATH_LIBEXEC
+        if [ $(id -u) -eq 0 ]
+        then
+            tlp-multimode-switch.rb $1
+        else
+            tlp-multimode-switch.bin $1
+        fi
+    else
+        ERR_FILE_NOT_FOUND "/etc/tlp-multimode/""$setactive_target"
+        exit 1
     fi
 }
 
@@ -248,6 +289,10 @@ do
         ;;
     esac
 done
+if [ $FLAG_PRINT_HELP -eq 1 ]
+then
+    WRN_CLEAN_MODE_OBSOLETE
+fi
 
 while [ $# -ne 0 ]
 do
@@ -264,9 +309,9 @@ case $1 in
         then
             print_getdefault_help
             exit 0
-        elif [ $FLAG_CLEAN_MODE -eq 1 ]
-        then
-            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
+#        elif [ $FLAG_CLEAN_MODE -eq 1 ]
+#        then
+#            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
         else
             getdefault
             exit 0
@@ -278,9 +323,9 @@ case $1 in
         then
             print_setdefault_help
             exit 0
-        elif [ $FLAG_CLEAN_MODE -eq 1 ]
-        then
-            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
+#        elif [ $FLAG_CLEAN_MODE -eq 1 ]
+#        then
+#            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
         else
             shift
             setdefault $@
@@ -294,9 +339,9 @@ case $1 in
         then
             print_get_help
             exit 0
-        elif [ $FLAG_CLEAN_MODE -eq 1 ]
-        then
-            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
+#        elif [ $FLAG_CLEAN_MODE -eq 1 ]
+#        then
+#            ERR_NO_CLEAN_MODE_OPTION $OPTIONS_GETOPT
         else
             getactive
             exit 0
@@ -308,15 +353,16 @@ case $1 in
         then
             print_set_help
             exit 0
-        elif [ $FLAG_CLEAN_MODE -eq 1 ]
-        then
-            WRN_CLEAN_MODE_OBSOLETE $@
-            shift
-            tlp_multimode_switch $@
-            exit 0
+#        elif [ $FLAG_CLEAN_MODE -eq 1 ]
+#        then
+#            WRN_CLEAN_MODE_OBSOLETE $@
+#            shift
+#            tlp_multimode_switch $@
+#            exit 0
         else
             shift
-            tlp_multimode_switch $@
+            echo going to activate profile $@
+            setactive $@
             exit 0
         fi
         ;;
